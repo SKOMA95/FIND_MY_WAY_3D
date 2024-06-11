@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FIND MY WAY 3D</title>
+    <link rel="shortcut icon" href="image.png">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            background-color: #f0f4f8;
+            color: #333;
+        }
+
+        header {
+            background-color: #009fe3;
+            color: #fff;
+            padding: 0.7em;
+            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header img {
+            margin-right: 10px;
+        }
+
+        section {
+            padding: 20px;
+            text-align: center;
+        }
+
+        #modele-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        footer {
+            background-color: #009fe3;
+            color: #fff;
+            padding: 0.4em;
+            text-align: center;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+
+        form {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        form label {
+            margin: 0 10px;
+        }
+
+        form input {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin: 0 10px;
+        }
+
+        form button {
+            background-color: #ff5722;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        form button:hover {
+            background-color: #e64a19;
+        }
+
+        svg {
+            border: 1px solid #ccc;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div>
+        <img src="image.png" alt="Logo" width="70" height="70">
+    </div>
+    <h1>FIND MY WAY 3D</h1>
+    <div>
+        <img src="esiea.png" alt="Logo" width="90" height="70">
+    </div>
+</header>
+
+<section>
+    <div id="modele-container">
+        <form id="pathForm">
+            <label for="currentLocation">Salle actuelle:</label>
+            <input type="text" id="currentLocation" name="currentLocation" required>
+            <label for="destination">Destination:</label>
+            <input type="text" id="destination" name="destination" required>
+            <button type="submit">Tracer le chemin</button>
+        </form>
+        <svg id="floorPlan" width="600" height="600">
+            <!-- Le plan du bâtiment sera dessiné ici -->
+            <image href="MAMADOU.png" x="0" y="0" width="600" height="600" />
+        </svg>
+    </div>
+</section>
+
+<footer>
+    <p>PST - FIND MY WAY 3D<br>FROBERT-DUFFEE-COTTET-COULET-NOUWOP</p>
+</footer>
+
+<script>
+document.getElementById('pathForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const currentLocation = document.getElementById('currentLocation').value;
+    const destination = document.getElementById('destination').value;
+    drawPath(currentLocation, destination);
+});
+
+const rooms = {
+    "i01": { x: 160, y: 390 },
+    "i02": { x: 160, y: 310 },
+    "i02bis": { x: 160, y: 245 },
+    "i03": { x: 160, y: 185 },
+    "i03bis": { x: 160, y: 135 }
+};
+
+const corridors = [
+    { x1: 179, y1: 80, x2: 179, y2: 600 }
+];
+
+function drawPath(start, end) {
+    const svg = document.getElementById('floorPlan');
+    svg.innerHTML = '<image href="MAMADOU.png" x="0" y="0" width="600" height="600" />'; // Effacer le chemin précédent et redessiner l'arrière-plan
+    if (rooms[start] && rooms[end]) {
+        const pathToCorridor = [{ x: rooms[start].x, y: rooms[start].y }, { x: 179, y: rooms[start].y }];
+        const pathInCorridor = [{ x: 179, y: rooms[start].y }, { x: 179, y: rooms[end].y }];
+        const pathFromCorridor = [{ x: 179, y: rooms[end].y }, { x: rooms[end].x, y: rooms[end].y }];
+        
+        const fullPath = pathToCorridor.concat(pathInCorridor.slice(1), pathFromCorridor.slice(1)); // Eviter la duplication des points
+        
+        fullPath.forEach((point, index) => {
+            if (index > 0) {
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("x1", fullPath[index - 1].x);
+                line.setAttribute("y1", fullPath[index - 1].y);
+                line.setAttribute("x2", point.x);
+                line.setAttribute("y2", point.y);
+                line.setAttribute("stroke", "red");
+                line.setAttribute("stroke-width", "2");
+                svg.appendChild(line);
+            }
+        });
+        
+        // Add arrow at the end of the path
+        if (fullPath.length > 1) {
+            const lastPoint = fullPath[fullPath.length - 1];
+            const secondLastPoint = fullPath[fullPath.length - 2];
+            addArrow(svg, secondLastPoint, lastPoint);
+        }
+    } else {
+        alert('Invalid room names');
+    }
+}
+
+function addArrow(svg, start, end) {
+    const arrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    const angle = Math.atan2(end.y - start.y, end.x - start.x);
+    const arrowLength = 10;
+    const arrowWidth = 5;
+    const arrowEndX = end.x - arrowLength * Math.cos(angle);
+    const arrowEndY = end.y - arrowLength * Math.sin(angle);
+
+    const pathData = `M${end.x},${end.y} L${arrowEndX - arrowWidth * Math.sin(angle)},${arrowEndY + arrowWidth * Math.cos(angle)} L${arrowEndX + arrowWidth * Math.sin(angle)},${arrowEndY - arrowWidth * Math.cos(angle)} Z`;
+
+    arrow.setAttribute("d", pathData);
+    arrow.setAttribute("fill", "red");
+    svg.appendChild(arrow);
+}
+
+const gridSize = 10;
+
+</script>
+</body>
+</html>
